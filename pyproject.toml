@@ -1,0 +1,9 @@
+[project]
+name = "k"
+version = "0.1.0"
+description = "Flask registration app"
+requires-python = ">=3.8"
+dependencies = [
+    "flask",
+    "mysql-connector-python",
+]

@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Секреты и локальные настройки
+.secret_key
+.env
+
+# Модели/данные локального AI не храним в репозитории
+ai/models/
+
+# ОС и редакторы
+.DS_Store
+.vscode/
+.idea/

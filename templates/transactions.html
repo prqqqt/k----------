@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>История транзакций</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 30px 20px;
+            box-sizing: border-box;
+            min-height: 100vh;
+        }
+
+        .wrap {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 18px;
+        }
+
+        .topbar h1 {
+            font-size: 22px;
+            margin: 0;
+            color: #222;
+        }
+
+        .back {
+            color: #007bff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back:hover {
+            text-decoration: underline;
+        }
+
+        .summary {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .summary .card {
+            flex: 1 1 150px;
+            background: white;
+            border-radius: 10px;
+            padding: 14px 16px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+        }
+
+        .summary .card .label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+
+        .summary .card .value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .plus { color: #1b7f3b; }
+        .minus { color: #b3261e; }
+
+        .panel {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        thead th {
+            text-align: left;
+            padding: 13px 16px;
+            background-color: #f7f9fb;
+            color: #5b6573;
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            border-bottom: 1px solid #e9edf2;
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: 13px 16px;
+            border-bottom: 1px solid #f0f3f6;
+            color: #333;
+            vertical-align: top;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background-color: #fafbfd;
+        }
+
+        .date {
+            white-space: nowrap;
+            color: #667;
+        }
+
+        .type-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background-color: #eef2f7;
+            color: #4a5568;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .desc {
+            color: #556;
+        }
+
+        .amount {
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .empty {
+            padding: 40px 20px;
+            text-align: center;
+            color: #778;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            background-color: #fdecea;
+            color: #b3261e;
+            border: 1px solid #f5c6c2;
+        }
+
+        @media (max-width: 620px) {
+            thead th, tbody td {
+                padding: 10px 10px;
+            }
+
+            .type-badge {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="topbar">
+            <h1>История транзакций</h1>
+            <a class="back" href="{{ url_for('profile') }}">← В профиль</a>
+        </div>
+
+        {% if error %}
+        <div class="message">{{ error }}</div>
+        {% endif %}
+
+        <div class="summary">
+            <div class="card">
+                <div class="label">Поступления</div>
+                <div class="value plus">+{{ '%.2f'|format(income) }} ₽</div>
+            </div>
+            <div class="card">
+                <div class="label">Списания</div>
+                <div class="value minus">−{{ '%.2f'|format(expense) }} ₽</div>
+            </div>
+            <div class="card">
+                <div class="label">Всего операций</div>
+                <div class="value">{{ rows|length }}</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            {% if rows %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Тип</th>
+                        <th>Описание</th>
+                        <th>Сумма</th>
+                        <th>Баланс после</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                    <tr>
+                        <td class="date">
+                            {% if row.created_at %}{{ row.created_at.strftime('%d.%m.%Y %H:%M') }}{% else %}—{% endif %}
+                        </td>
+                        <td><span class="type-badge">{{ row.type_label }}</span></td>
+                        <td class="desc">{{ row.description or '—' }}</td>
+                        <td class="amount {{ 'plus' if row.amount > 0 else 'minus' }}">
+                            {{ '+' if row.amount > 0 else '' }}{{ row.amount }} ₽
+                        </td>
+                        <td>{{ row.balance_after }} ₽</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty">
+                Пока нет ни одной транзакции.<br>
+                <a class="back" href="{{ url_for('ai_chat') }}">Попробуйте задать вопрос AI</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
